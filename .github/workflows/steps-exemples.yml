@@ -8,4 +8,5 @@ jobs:
    - name: configuração do node (pesquisar no marketplace...)
    - uses: actions/checkout@v3
    - uses: actions/setup-node@v3
-   - name: verification of node version
+     with:
+      node-version: 16
