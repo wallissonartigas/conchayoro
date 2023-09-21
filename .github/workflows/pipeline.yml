@@ -20,10 +20,10 @@ jobs:
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
       AWS_EC2_METADATA_DISABLED: true
       BUCKET_S3: ${{ vars.BUCKET_S3 }}
-  steps:
-  - uses: actions/download-artifact@v3
-    with:
-      name: deploy
-      path: index.html 
-  - run: aws s3 cp index.html s3://$BUCKET_S3 --recursive --acl
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: deploy
+        path: index.html 
+    - run: aws s3 cp index.html s3://$BUCKET_S3 --recursive --acl
 public-read
