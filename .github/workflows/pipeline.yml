@@ -30,6 +30,6 @@ jobs:
           python-version: '3.10'
       - run: |
           sudo apt-get install python3
-          #pip install awsebcli
+          pip install awsebcli
       - run: |
           eb deploy --verbose
