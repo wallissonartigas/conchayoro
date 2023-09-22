@@ -1,37 +1,55 @@
 name: conchayoro-pipeline
+
 on:
-   push: 
+  push:
+    branches:
+      - main  # Defina a branch em que deseja acionar o pipeline
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/upload-artifact@v3
+    - name: Checkout código-fonte
+      uses: actions/checkout@v2  # Use a versão mais recente para checkout
+
+    - name: Empacotar artefatos
+      run: |
+        mkdir -p ebconfig
+        mv frontend/.elasticbeanstalk/config.yml frontend/Dockerrun.aws.json ebconfig/
+      continue-on-error: true  # Continuar mesmo se o comando mv falhar
+
+    - name: Fazer upload de artefatos
+      uses: actions/upload-artifact@v2
       with:
         name: ebconfig
-        path: |
-            frontend/.elasticbeanstalk/config.yml
-            frontend/Dockerrun.aws.json
+        path: ebconfig
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/download-artifact@v3
-      - uses: actions/checkout@v3
-        with:
-          name: ebconfig
-          path: .
-      - run: |
-          sed -i='' "s/<AWS_ACCOUNT_ID>/$AWS_ACCOUNT_ID/" frontend/Dockerrun.aws.json
-          sed -i='' "s/<PROJECT_NAME>/$PROJECT_NAME/" frontend/Dockerrun.aws.json
-          sed -i='' "s/<MODULE_NAME>/$MODULE_NAME/" frontend/Dockerrun.aws.json
-          sed -i='' "s/<TAG>/$TAG/" frontend/Dockerrun.aws.json
-      - uses: actions/setup-python@v3
-        with:
-          python-version: '3.10'
-      - run: |
-           pip install --upgrade pip
-           pip install awsebcli
-      - run: |
-          cd ebconfig
-          eb deploy --verbose
+    - name: Checkout código-fonte
+      uses: actions/checkout@v2  # Use a versão mais recente para checkout
+
+    - name: Baixar artefatos
+      uses: actions/download-artifact@v2
+      with:
+        name: ebconfig
+        path: ebconfig
+
+    - name: Atualizar variáveis no Dockerrun.aws.json
+      run: |
+        sed -i "s/<AWS_ACCOUNT_ID>/$AWS_ACCOUNT_ID/" ebconfig/Dockerrun.aws.json
+        sed -i "s/<PROJECT_NAME>/$PROJECT_NAME/" ebconfig/Dockerrun.aws.json
+        sed -i "s/<MODULE_NAME>/$MODULE_NAME/" ebconfig/Dockerrun.aws.json
+        sed -i "s/<TAG>/$TAG/" ebconfig/Dockerrun.aws.json
+
+    - name: Instalar AWSEB CLI
+      run: |
+        pip install --upgrade pip
+        pip install awsebcli
+
+    - name: Fazer o deploy para o Elastic Beanstalk
+      run: |
+        cd ebconfig
+        eb deploy --verbose
