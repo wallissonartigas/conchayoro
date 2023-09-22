@@ -17,6 +17,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v3
         with:
           name: ebconfig
           path: .
@@ -29,7 +30,8 @@ jobs:
         with:
           python-version: '3.10'
       - run: |
-          sudo apt-get install build-essential python3-dev
-          pip install awsebcli
+           pip install --upgrade pip
+           pip install awsebcli
       - run: |
+          cd ebconfig
           eb deploy --verbose
